@@ -1,10 +1,16 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP085.h>
+
+Adafruit_BMP085 bmp;
+
 void setup() {
-  // put your setup code here, to run once:
+  Serial.begin(115200)
 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  float temperature = bmp.readTemperature();  
+  int32_t pressure = bmp.readPressure();      
 }
-//Hello hej Hugo boss
+
