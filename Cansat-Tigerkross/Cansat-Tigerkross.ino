@@ -8,10 +8,12 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <SFE_BMP180.h>
+#include <SPI.h>
 
 SFE_BMP180 bmp180;
 
 Adafruit_MPU6050 mpu;
+
 
 void setup(void) {
   Serial.begin(115200);
@@ -94,7 +96,6 @@ void setup(void) {
     break;
   }
 
-  Serial.println("");
   delay(100);
 }
 
@@ -158,3 +159,5 @@ void loop() {
   Serial.println("");
   delay(50);
 }
+
+
