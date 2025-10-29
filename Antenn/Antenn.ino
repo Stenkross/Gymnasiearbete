@@ -1,6 +1,6 @@
 #include <SPI.h>
 #include <RH_RF69.h>
-#define RF69_FREQ 915.0
+#define RF69_FREQ 433.0
 #define RFM69_CS   1  
 #define RFM69_INT  24 
 #define RFM69_RST  25 
@@ -41,18 +41,17 @@ void setup() {
 
   rf69.setTxPower(20, true); 
 
-  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-  rf69.setEncryptionKey(key);
+  //uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+  //                  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+  //rf69.setEncryptionKey(key);
 
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
 }
 
 void loop() {
-  delay(1000); 
+  delay(5000); //Ta bort för transmitter/satellit och välj delay på receiver/groundstation
 
-  char radiopacket[20] = "Hello World #";
-  itoa(packetnum++, radiopacket+13, 10);
+  char radiopacket[20] = "Hello World";
   Serial.print("Sending "); Serial.println(radiopacket);
 
   rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
