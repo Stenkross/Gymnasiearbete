@@ -1,5 +1,3 @@
-// Basic demo for accelerometer readings from Adafruit MPU6050
-
 // ESP32 Guide: https://RandomNerdTutorials.com/esp32-mpu-6050-accelerometer-gyroscope-arduino/
 // ESP8266 Guide: https://RandomNerdTutorials.com/esp8266-nodemcu-mpu-6050-accelerometer-gyroscope-arduino/
 // Arduino Guide: https://RandomNerdTutorials.com/arduino-mpu-6050-accelerometer-gyroscope/
@@ -14,11 +12,10 @@ SFE_BMP180 bmp180;
 
 Adafruit_MPU6050 mpu;
 
-
 void setup(void) {
   Serial.begin(115200);
   while (!Serial)
-    delay(10); // will pause Zero, Leonardo, etc until serial console opens
+    delay(10); 
 
   Serial.println("Adafruit MPU6050 test!");
 
@@ -28,13 +25,13 @@ void setup(void) {
     Serial.println("BMP180 init success");
   }
 
-  // Try to initialize!
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
     while (1) {
       delay(10);
     }
   }
+
   Serial.println("MPU6050 Found!");
 
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
@@ -53,6 +50,7 @@ void setup(void) {
     Serial.println("+-16G");
     break;
   }
+
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   Serial.print("Gyro range set to: ");
   switch (mpu.getGyroRange()) {
@@ -100,7 +98,6 @@ void setup(void) {
 }
 
 void loop() {
-  /* Get new sensor events with the readings */
 
   char status;
   double T, P;
@@ -135,7 +132,6 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
-  /* Print out the values */
   Serial.print("Acceleration X: ");
   Serial.print(a.acceleration.x);
   Serial.print(", Y: ");
