@@ -49,7 +49,7 @@ void setup() {
 }
 
 void loop() {
-  delay(5000); //Ta bort för transmitter/satellit och välj delay på receiver/groundstation
+   //Ta bort för transmitter/satellit och välj delay på receiver/groundstation
 
   char radiopacket[20] = "Hello World";
   Serial.print("Sending "); Serial.println(radiopacket);

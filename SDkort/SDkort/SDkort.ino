@@ -23,10 +23,10 @@
 // Only certain pins can be used by the SPI hardware, so if you change
 // these be sure they are legal or the program will crash.
 // See: https://datasheets.raspberrypi.com/picow/PicoW-A4-Pinout.pdf
-const int _MISO = 4;
-const int _MOSI = 7;
-const int _CS = 5;
-const int _SCK = 6;
+const int _MISO = 20;
+const int _MOSI = 19;
+const int _CS = 1;
+const int _SCK = 18;
 
 // If you have all 4 DAT pins wired up to the Pico you can use SDIO mode
 const int RP_CLK_GPIO = -1; // Set to CLK GPIO
@@ -41,7 +41,7 @@ File myFile;
 void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
-
+  while(!Serial) delay(1);
   Serial.print("Initializing SD card...");
 
   bool sdInitialized = false;
@@ -51,7 +51,7 @@ void setup() {
   } else {
     // Ensure the SPI pinout the SD card is connected to is configured properly
     // Select the correct SPI based on _MISO pin for the RP2040
-    if (_MISO == 0 || _MISO == 4 || _MISO == 16) {
+    if (_MISO == 20 || _MISO == 4 || _MISO == 16) {
       SPI.setRX(_MISO);
       SPI.setTX(_MOSI);
       SPI.setSCK(_SCK);
