@@ -49,6 +49,7 @@ void setup() {
     Serial.println("Hittar inte MPU6050! Kontrollera I2C-koppling.");
     while (1) { delay(1000); }
   }
+
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
@@ -56,10 +57,11 @@ void setup() {
   if (bmp180.begin()) {
     Serial.println("BMP180 OK");
   } else {
-    Serial.println("BMP180 hittas inte (pressure/temp blir -999)");
+    Serial.println("BMP180 hittades inte");
   }
 
   Serial.println("Setup klar.");
+
 }
 
 void loop() {
@@ -91,7 +93,8 @@ void loop() {
   float accelY     = a.acceleration.y;
   float accelZ     = a.acceleration.z;
 
-  
+  Serial.println(String((accelX),2) + " " + String((accelY),2) + " " + String((accelZ),2));
+
   String msg = String(time_ms) + ";" +
                String(T, 1) + ";" +
                String(P, 1) + ";" +
@@ -138,5 +141,5 @@ void loop() {
     Serial.println("No reply, is another RFM69 listening?");
   }
 
-  delay(100); // ~10 Hz
+  delay(500); // ~10 Hz
 }
