@@ -1,3 +1,6 @@
+//Kod för markstation
+//Måste lägga till SDkortet här och ha olika cs-pins. Just nu är antennen på 1 och SDkortet på 1
+
 #include <SPI.h>
 #include <RH_RF69.h>
 #define RF69_FREQ 433.0
@@ -49,7 +52,7 @@ void setup() {
 }
 
 void loop() {
-   //Ta bort för transmitter/satellit och välj delay på receiver/groundstation
+  //Ta bort för transmitter/satellit och välj delay på receiver/groundstation
 
   char radiopacket[20] = "Hello World";
   Serial.print("Sending "); Serial.println(radiopacket);

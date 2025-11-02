@@ -1,3 +1,5 @@
+//Kod för satelliten. Skicka alla mätvärden till Groundstation.
+
 #include <SPI.h>
 #include <RH_RF69.h>
 #include <Wire.h>
