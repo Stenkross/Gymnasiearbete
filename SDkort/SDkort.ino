@@ -39,8 +39,12 @@ void setup() {
   Serial.println("Creating example.txt...");
   myFile = SD.open("example.txt", FILE_WRITE);
   myFile.println("Hej 123");
+  myFile.println("Hej 124");
   myFile.close();
-
+  myFile = SD.open("example.txt", FILE_WRITE);
+  myFile.println("Hej 125");
+  myFile.println("Hej 126");
+  myFile.close();
 }
 
 void loop() {
