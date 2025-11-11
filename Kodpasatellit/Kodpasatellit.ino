@@ -143,5 +143,5 @@ void loop() {
     Serial.println("No reply, is another RFM69 listening?");
   }
 
-  delay(500); // ~10 Hz
+  
 }
