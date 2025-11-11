@@ -5,17 +5,25 @@
 #include <RH_RF69.h>
 #include <SD.h>
 #define RF69_FREQ 433.0
-#define RFM69_CS   1  
+#define RFM69_CS   9 
 #define RFM69_INT  24 
 #define RFM69_RST  25 
 #define LED        11
 
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
-const int chipSelect = 10;
+const int chipSelect = 1;
 File myFile;
 int16_t packetnum = 0;  
 
 void setup() {
+  pinMode(chipSelect,OUTPUT);
+  pinMode(LED, OUTPUT);
+  pinMode(RFM69_RST, OUTPUT);
+  pinMode(RFM69_INT,OUTPUT);
+  pinMode(RFM69_CS,OUTPUT);
+
+  pinMode(RFM69_CS,HIGH);
+
   Serial.begin(115200);
   while (!Serial) delay(1); 
 
@@ -41,10 +49,8 @@ void setup() {
     myFile.close();
   } 
 
-  pinMode(LED, OUTPUT);
-  pinMode(RFM69_RST, OUTPUT);
-  pinMode(RFM69_INT,OUTPUT);
-  pinMode(RFM69_CS,OUTPUT);
+  digitalWrite(chipSelect,HIGH);
+
   digitalWrite(RFM69_RST, LOW);
 
   Serial.println("Feather RFM69 TX Test!");
@@ -77,6 +83,7 @@ void setup() {
 
 void loop() {
   //Ta bort för transmitter/satellit och välj delay på receiver/groundstation
+  delay(500);
 
   char radiopacket[20] = "Hello World";
   Serial.print("Sending "); Serial.println(radiopacket);
@@ -91,9 +98,13 @@ void loop() {
     if (rf69.recv(buf, &len)) {
       Serial.print("Got a reply: ");
       Serial.println((char*)buf);
+      digitalWrite(RFM69_CS,HIGH);
+      digitalWrite(chipSelect,LOW);
       myFile = SD.open("example.txt", FILE_WRITE);
       myFile.println((char*)buf);
       myFile.close();
+      digitalWrite(RFM69_CS,LOW);
+      digitalWrite(chipSelect,HIGH);
       Blink(LED, 50, 3); // blink LED 3 times, 50ms between blinks
     } else {
       Serial.println("Receive failed");
