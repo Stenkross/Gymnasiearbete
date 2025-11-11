@@ -5,13 +5,13 @@
 #include <RH_RF69.h>
 #include <SD.h>
 #define RF69_FREQ 433.0
-#define RFM69_CS   9 
+#define RFM69_CS   1 
 #define RFM69_INT  24 
 #define RFM69_RST  25 
 #define LED        11
 
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
-const int chipSelect = 1;
+const int chipSelect = 9;
 File myFile;
 int16_t packetnum = 0;  
 
@@ -22,35 +22,10 @@ void setup() {
   pinMode(RFM69_INT,OUTPUT);
   pinMode(RFM69_CS,OUTPUT);
 
-  pinMode(RFM69_CS,HIGH);
-
   Serial.begin(115200);
   while (!Serial) delay(1); 
 
-  Serial.print("Initializing SD card...");
-
-  if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed. Things to check:");
-    Serial.println("1. is a card inserted?");
-    Serial.println("2. is your wiring correct?");
-    Serial.println("3. did you change the chipSelect pin to match your shield or module?");
-    Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
-    while (1);
-  }
-
-  Serial.println("initialization done.");
-
-  if (SD.exists("example.txt")) {
-    Serial.println("example.txt exists. Removing it");
-    SD.remove("example.txt");
-    Serial.println("Creating example.txt...");
-    myFile = SD.open("example.txt", FILE_WRITE);
-    myFile.println("Start");
-    myFile.close();
-  } 
-
   digitalWrite(chipSelect,HIGH);
-
   digitalWrite(RFM69_RST, LOW);
 
   Serial.println("Feather RFM69 TX Test!");
@@ -79,6 +54,34 @@ void setup() {
   //rf69.setEncryptionKey(key);
 
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
+
+
+  digitalWrite(RFM69_CS,HIGH);
+  digitalWrite(chipSelect,LOW);
+
+  Serial.print("Initializing SD card...");
+
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization failed. Things to check:");
+    Serial.println("1. is a card inserted?");
+    Serial.println("2. is your wiring correct?");
+    Serial.println("3. did you change the chipSelect pin to match your shield or module?");
+    Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
+    while (1);
+  }
+
+  Serial.println("initialization done.");
+
+  if (SD.exists("example.txt")) {
+    Serial.println("example.txt exists. Removing it");
+    SD.remove("example.txt");
+    Serial.println("Creating example.txt...");
+    myFile = SD.open("example.txt", FILE_WRITE);
+    myFile.println("Start");
+    myFile.close();
+  } 
+
+  digitalWrite(chipSelect,HIGH);
 }
 
 void loop() {
