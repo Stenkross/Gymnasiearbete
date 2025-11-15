@@ -1,36 +1,31 @@
-#include <SPI.h>
-#include <RH_RF69.h>
-#include <Wire.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-#include <SFE_BMP180.h>
 
-#define RF69_FREQ   433.0
-#define RFM69_CS     1
-#define RFM69_INT   24
-#define RFM69_RST   25
-#define LED         10
-
-RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 Adafruit_MPU6050 mpu;
-SFE_BMP180 bmp180;
 
-//const bool USE_BMP_TEMP = false;
-//
-//void Blink(byte pin, byte delay_ms, byte loops) {
-//  while (loops--) { digitalWrite(pin, HIGH); delay(delay_ms); digitalWrite(pin, LOW); delay(delay_ms); }
-//}
+float angleAccX;
+float angleAccY;  
+float angleAccZ;
 
+float angleVelX = 0;
+float angleVelY = 0;  
+float angleVelZ = 0;
 
+float angleX = 0;
+float angleY = 0;  
+float angleZ = 0;
 
 void setup() {
   Serial.begin(9600);
+
+  pinMode(10,INPUT);
 
   if (!mpu.begin()) {
     Serial.println("Hittar inte MPU6050! Kontrollera I2C-koppling.");
     while (1) { delay(1000); }
   }
+
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
@@ -46,7 +41,34 @@ void loop() {
   float accelY     = a.acceleration.y;
   float accelZ     = a.acceleration.z;
 
-  Serial.println(String((accelX),2) + " " + String((accelY),2) + " " + String((accelZ),2));
+  //if (digitalRead(10) == HIGH) 
+  //{
+    //Serial.println(String((Xcal),2) + " " + String((Ycal),2) + " " + String((Zcal),2));
+  //}
 
-  delay(500); // ~10 Hz
+  accelX += 0.438985;
+  accelY -= 0.275097;
+  accelZ -= 2.280243;
+
+  accelX = (1.076808 * accelX) - (0.075704 * accelY) - (0.031436 * accelZ);
+  accelY = (-0.075704 * accelX) + (1.057946 * accelY) + (0.026019 * accelZ);
+  accelZ = (-0.031436 * accelX) + (0.026019 * accelY) + (1.036761 * accelZ);
+  
+
+
+  Serial.println("Acc:" + String((accelX),2) + " " + String((accelY),2) + " " + String((accelZ),2));
+
+  angleAccX = round(100*(g.gyro.x+0.07))/100;
+  angleAccY = round(100*(g.gyro.y+0.02))/100;  
+  angleAccZ = round(100*(g.gyro.z+0.02))/100;
+
+
+
+  angleX += (angleAccX)/2;
+  angleY += (angleAccY)/2;
+  angleZ += (angleAccZ)/2;
+
+  Serial.println("Angle:" + String((angleX),2) + " " + String((angleY),2) + " " + String((angleZ),2));
+
+  delay(10);
 }
