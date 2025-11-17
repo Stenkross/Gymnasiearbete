@@ -25,10 +25,15 @@ File myFile;
 
 const int chipSelect = 9;
 int16_t packetnum = 0;  
-const bool USE_BMP_TEMP = false;
+const bool USE_BMP_TEMP = false; //Används inte?
 
 void Blink(byte pin, byte delay_ms, byte loops) {
-  while (loops--) { digitalWrite(pin, HIGH); delay(delay_ms); digitalWrite(pin, LOW); delay(delay_ms); }
+  while (loops--) { 
+    digitalWrite(pin, HIGH); 
+    delay(delay_ms); 
+    digitalWrite(pin, LOW); 
+    delay(delay_ms); 
+  }
 }
 
 void setup() {
