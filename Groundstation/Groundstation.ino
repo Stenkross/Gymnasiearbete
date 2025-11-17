@@ -1,9 +1,8 @@
-//Kod för markstation
-//Måste lägga till SDkortet här och ha olika cs-pins. Just nu är antennen på 1 och SDkortet på 1
+//Kod för markstation. Tar emot datan från satelliten
+//Ladda ner CoolTerm för att kunna spara datan i seriella monitorn i en text fil
 
 #include <SPI.h>
 #include <RH_RF69.h>
-#include <SD.h>
 #define RF69_FREQ 433.0
 #define RFM69_CS   1 
 #define RFM69_INT  24 
@@ -11,12 +10,8 @@
 #define LED        11
 
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
-const int chipSelect = 9;
-File myFile;
-int16_t packetnum = 0;  
 
 void setup() {
-  pinMode(chipSelect,OUTPUT);
   pinMode(LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   pinMode(RFM69_INT,OUTPUT);
@@ -25,16 +20,8 @@ void setup() {
   Serial.begin(115200);
   while (!Serial) delay(1); 
 
-  digitalWrite(chipSelect,HIGH);
-  digitalWrite(RFM69_RST, LOW);
-
-  Serial.println("Feather RFM69 TX Test!");
-  Serial.println();
-
-  digitalWrite(RFM69_RST, HIGH);
-  delay(10);
-  digitalWrite(RFM69_RST, LOW);
-  delay(10);
+  digitalWrite(RFM69_RST, HIGH); delay(10);
+  digitalWrite(RFM69_RST, LOW); delay(10);
 
   if (!rf69.init()) {
     Serial.println("RFM69 radio init failed");
@@ -55,34 +42,6 @@ void setup() {
   //rf69.setEncryptionKey(key);
 
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
-
-
-  digitalWrite(RFM69_CS,HIGH);
-  digitalWrite(chipSelect,LOW);
-
-  Serial.print("Initializing SD card...");
-
-  if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed. Things to check:");
-    Serial.println("1. is a card inserted?");
-    Serial.println("2. is your wiring correct?");
-    Serial.println("3. did you change the chipSelect pin to match your shield or module?");
-    Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
-    while (1);
-  }
-
-  Serial.println("initialization done.");
-
-  if (SD.exists("example.txt")) {
-    Serial.println("example.txt exists. Removing it");
-    SD.remove("example.txt");
-    Serial.println("Creating example.txt...");
-    myFile = SD.open("example.txt", FILE_WRITE);
-    myFile.println("Start");
-    myFile.close();
-  } 
-
-  digitalWrite(chipSelect,HIGH);
 }
 
 void loop() {
@@ -100,15 +59,7 @@ void loop() {
 
   if (rf69.waitAvailableTimeout(500)) {
     if (rf69.recv(buf, &len)) {
-      Serial.print("Got a reply: ");
       Serial.println((char*)buf);
-      digitalWrite(RFM69_CS,HIGH);
-      digitalWrite(chipSelect,LOW);
-      myFile = SD.open("example.txt", FILE_WRITE);
-      myFile.println((char*)buf);
-      myFile.close();
-      digitalWrite(RFM69_CS,LOW);
-      digitalWrite(chipSelect,HIGH);
       Blink(LED, 50, 3); // blink LED 3 times, 50ms between blinks
     } else {
       Serial.println("Receive failed");

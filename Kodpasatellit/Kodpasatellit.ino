@@ -1,8 +1,10 @@
 //Kod för satelliten. Skicka alla mätvärden till Groundstation.
+//Cs-pin för antennen: 1 och SDkort: 9
 
 #include <SPI.h>
 #include <RH_RF69.h>
 #include <Wire.h>
+#include <SD.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <SFE_BMP180.h>
@@ -19,7 +21,10 @@ RH_RF69 rf69(RFM69_CS, RFM69_INT);
 Adafruit_MPU6050 mpu;
 SFE_BMP180 bmp180;
 TinyGPSPlus gps;
+File myFile;
 
+const int chipSelect = 9;
+int16_t packetnum = 0;  
 const bool USE_BMP_TEMP = false;
 
 void Blink(byte pin, byte delay_ms, byte loops) {
@@ -31,10 +36,15 @@ void setup() {
   Serial1.begin(9600);
   while (!Serial) { delay(1); }
 
+  //Börjar initiera radion.
+
+  pinMode(chipSelect,OUTPUT);
   pinMode(LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   pinMode(RFM69_INT, OUTPUT);
   pinMode(RFM69_CS, OUTPUT);
+
+  digitalWrite(chipSelect,HIGH);
   digitalWrite(RFM69_RST, LOW);
 
   digitalWrite(RFM69_RST, HIGH); delay(10);
@@ -52,6 +62,37 @@ void setup() {
 
   rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kvar
 
+  //Sen initieras SD-kortet
+
+  digitalWrite(RFM69_CS,HIGH);
+  digitalWrite(chipSelect,LOW);
+
+  Serial.print("Initializing SD card...");
+
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization failed. Things to check:");
+    Serial.println("1. is a card inserted?");
+    Serial.println("2. is your wiring correct?");
+    Serial.println("3. did you change the chipSelect pin to match your shield or module?");
+    Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
+    while (1);
+  }
+
+  Serial.println("initialization done.");
+
+  if (SD.exists("example.txt")) {
+    Serial.println("example.txt exists. Removing it");
+    SD.remove("example.txt");
+    Serial.println("Creating example.txt...");
+    myFile = SD.open("example.txt", FILE_WRITE);
+    myFile.println("Start");
+    myFile.close();
+  } 
+
+  digitalWrite(chipSelect,HIGH);
+
+  //Sen initieras accelerometern
+
   if (!mpu.begin()) {
     Serial.println("Hittar inte MPU6050! Kontrollera I2C-koppling.");
     while (1) { delay(1000); }
@@ -60,6 +101,8 @@ void setup() {
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
+
+  //Sen initieras tryck och temperatur mätaren
 
   if (bmp180.begin()) {
     Serial.println("BMP180 OK");
@@ -75,6 +118,8 @@ void loop() {
   while (Serial1.available()) {
     gps.encode(Serial1.read());
   }
+
+  //Tryck och temperatur
 
   double T,P;
   char status;
@@ -94,8 +139,11 @@ void loop() {
     }
   }
 
+  //Tiden sen programmet startade?
   
   unsigned long time_ms = millis()/1000;
+
+  //Accelerometern
 
   sensors_event_t a, g, t_mpu;
   mpu.getEvent(&a, &g, &t_mpu);
@@ -106,6 +154,8 @@ void loop() {
 
   Serial.println(String((accelX),2) + " " + String((accelY),2) + " " + String((accelZ),2));
 
+  //Gpsen
+
   double lat = NAN;
   double lng = NAN;
 
@@ -113,6 +163,8 @@ void loop() {
     lat = gps.location.lat();
     lng = gps.location.lng();
   }
+
+  //Lägg ihop allt till meddelandet som ska skickas
 
   String msg = String(time_ms) + ";" +
                String(T, 1) + ";" +
@@ -123,7 +175,16 @@ void loop() {
                String(lat ,5) + ";" +
                String(lng ,5) + ";" +"\n";
 
-  
+  //Skriv det i SD-kortet som backup
+
+  digitalWrite(RFM69_CS,HIGH);
+  digitalWrite(chipSelect,LOW);
+  myFile = SD.open("example.txt", FILE_WRITE);
+  myFile.println(msg);
+  myFile.close();
+  digitalWrite(RFM69_CS,LOW);
+  digitalWrite(chipSelect,HIGH);
+
   const uint8_t MAXLEN = 60;
   if (msg.length() >= MAXLEN) {
     // Format: tid;T;P;ax;ay;az;lat;lng;
@@ -137,6 +198,7 @@ void loop() {
           String(lng ,3) + ";" +"\n";
   }
 
+  //Skicka det till markstationen via radion.
   
   char radiopacket[MAXLEN];
   size_t nCopy = min((size_t)(MAXLEN - 1), (size_t)msg.length());
@@ -163,6 +225,4 @@ void loop() {
   } else {
     Serial.println("No reply, is another RFM69 listening?");
   }
-
-  
 }
