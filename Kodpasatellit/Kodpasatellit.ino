@@ -6,6 +6,7 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <SFE_BMP180.h>
+#include <TinyGPSPlus.h>
 
 #define RF69_FREQ   433.0
 #define RFM69_CS     1
@@ -17,6 +18,7 @@ RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 Adafruit_MPU6050 mpu;
 SFE_BMP180 bmp180;
+TinyGPSPlus gps;
 
 const bool USE_BMP_TEMP = false;
 
@@ -26,6 +28,7 @@ void Blink(byte pin, byte delay_ms, byte loops) {
 
 void setup() {
   Serial.begin(115200);
+  Serial1.begin(9600);
   while (!Serial) { delay(1); }
 
   pinMode(LED, OUTPUT);
@@ -47,6 +50,8 @@ void setup() {
   rf69.setTxPower(20, true);
   Serial.print("RFM69 @ "); Serial.print(RF69_FREQ); Serial.println(" MHz");
 
+  rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kvar
+
   if (!mpu.begin()) {
     Serial.println("Hittar inte MPU6050! Kontrollera I2C-koppling.");
     while (1) { delay(1000); }
@@ -67,6 +72,10 @@ void setup() {
 }
 
 void loop() {
+  while (Serial1.available()) {
+    gps.encode(Serial1.read());
+  }
+
   double T,P;
   char status;
   bool success = false;
@@ -74,7 +83,7 @@ void loop() {
   status = bmp180.startTemperature();
 
   if (status != 0) {
-    delay(1000);
+    delay(status);
     status = bmp180.getTemperature(T); 
     if (status != 0) {
       status = bmp180.startPressure(3);
@@ -91,29 +100,41 @@ void loop() {
   sensors_event_t a, g, t_mpu;
   mpu.getEvent(&a, &g, &t_mpu);
 
-  float accelX     = a.acceleration.x;
-  float accelY     = a.acceleration.y;
-  float accelZ     = a.acceleration.z;
+  float accelX = a.acceleration.x;
+  float accelY = a.acceleration.y;
+  float accelZ = a.acceleration.z;
 
   Serial.println(String((accelX),2) + " " + String((accelY),2) + " " + String((accelZ),2));
+
+  double lat = NAN;
+  double lng = NAN;
+
+  if (gps.location.isValid())  { // använda && (gps.location.isUpdated())?
+    lat = gps.location.lat();
+    lng = gps.location.lng();
+  }
 
   String msg = String(time_ms) + ";" +
                String(T, 1) + ";" +
                String(P, 1) + ";" +
                String(accelX, 2) + ";" +
                String(accelY, 2) + ";" +
-               String(accelZ, 2) + ";";
+               String(accelZ, 2) + ";" +
+               String(lat ,5) + ";" +
+               String(lng ,5) + ";" +"\n";
 
   
   const uint8_t MAXLEN = 60;
   if (msg.length() >= MAXLEN) {
-    
+    // Format: tid;T;P;ax;ay;az;lat;lng;
     msg = String(time_ms) + ";" +
           String(T, 1) + ";" +
           String(P, 0) + ";" +
           String(accelX, 1) + ";" +
           String(accelY, 1) + ";" +
-          String(accelZ, 1) + ";\n";
+          String(accelZ, 1) + ";" +
+          String(lat ,3) + ";" +
+          String(lng ,3) + ";" +"\n";
   }
 
   
@@ -130,7 +151,7 @@ void loop() {
 
   uint8_t buf[60];
   uint8_t len = sizeof(buf);
-  if (rf69.waitAvailableTimeout(500)) {
+  if (rf69.waitAvailableTimeout(10)) { //testade sänka den (Är 500 innan) för att optimera tiden
     if (rf69.recv(buf, &len)) {
       if (len < sizeof(buf)) buf[len] = '\0'; else buf[sizeof(buf) - 1] = '\0';
       Serial.print("Got a reply: ");
