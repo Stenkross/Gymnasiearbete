@@ -11,7 +11,7 @@
 #include <TinyGPSPlus.h>
 
 #define RF69_FREQ   433.0
-#define RFM69_CS     1
+#define RFM69_CS    1
 #define RFM69_INT   24
 #define RFM69_RST   25
 #define LED         10
