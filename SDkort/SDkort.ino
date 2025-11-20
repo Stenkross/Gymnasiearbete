@@ -9,12 +9,15 @@
 
 #include <SD.h>
 
-const int chipSelect = 1;
+const int chipSelect = 9;
 File myFile;
 
 void setup() {
   Serial.begin(9600);
   while (!Serial);
+
+  pinMode(5,OUTPUT);
+  digitalWrite(5,HIGH);
 
   Serial.print("Initializing SD card...");
 

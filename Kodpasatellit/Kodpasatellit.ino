@@ -11,14 +11,13 @@
 #include <TinyGPSPlus.h>
 
 #define RF69_FREQ   433.0
-#define RFM69_CS    1
+#define RFM69_CS    5
 #define RFM69_INT   24
 #define RFM69_RST   25
 #define LED         10
 
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
-Adafruit_MPU6050 mpu;
 SFE_BMP180 bmp180;
 TinyGPSPlus gps;
 File myFile;
@@ -50,7 +49,7 @@ void setup() {
   pinMode(RFM69_CS, OUTPUT);
 
   digitalWrite(chipSelect,HIGH);
-  digitalWrite(RFM69_RST, LOW);
+  digitalWrite(RFM69_CS, LOW);
 
   digitalWrite(RFM69_RST, HIGH); delay(10);
   digitalWrite(RFM69_RST, LOW);  delay(10);
@@ -96,17 +95,6 @@ void setup() {
 
   digitalWrite(chipSelect,HIGH);
 
-  //Sen initieras accelerometern
-
-  if (!mpu.begin()) {
-    Serial.println("Hittar inte MPU6050! Kontrollera I2C-koppling.");
-    while (1) { delay(1000); }
-  }
-
-  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
-
   //Sen initieras tryck och temperatur mätaren
 
   if (bmp180.begin()) {
@@ -148,17 +136,6 @@ void loop() {
   
   unsigned long time_ms = millis()/1000;
 
-  //Accelerometern
-
-  sensors_event_t a, g, t_mpu;
-  mpu.getEvent(&a, &g, &t_mpu);
-
-  float accelX = a.acceleration.x;
-  float accelY = a.acceleration.y;
-  float accelZ = a.acceleration.z;
-
-  Serial.println(String((accelX),2) + " " + String((accelY),2) + " " + String((accelZ),2));
-
   //Gpsen
 
   double lat = NAN;
@@ -174,9 +151,6 @@ void loop() {
   String msg = String(time_ms) + ";" +
                String(T, 1) + ";" +
                String(P, 1) + ";" +
-               String(accelX, 2) + ";" +
-               String(accelY, 2) + ";" +
-               String(accelZ, 2) + ";" +
                String(lat ,5) + ";" +
                String(lng ,5) + ";" +"\n";
 
@@ -196,9 +170,6 @@ void loop() {
     msg = String(time_ms) + ";" +
           String(T, 1) + ";" +
           String(P, 0) + ";" +
-          String(accelX, 1) + ";" +
-          String(accelY, 1) + ";" +
-          String(accelZ, 1) + ";" +
           String(lat ,3) + ";" +
           String(lng ,3) + ";" +"\n";
   }
