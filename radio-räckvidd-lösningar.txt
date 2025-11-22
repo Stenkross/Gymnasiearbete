@@ -1,0 +1,13 @@
+skicka/ta emot i koden
+
+kryption
+
+rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); i koden
+
+ändra frekvens
+
+höja styrkan
+
+skriva ut signalstyrkan
+
+ändra antenn

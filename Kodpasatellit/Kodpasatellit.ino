@@ -63,11 +63,11 @@ void setup() {
   rf69.setTxPower(20, true);
   Serial.print("RFM69 @ "); Serial.print(RF69_FREQ); Serial.println(" MHz");
 
-  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-  rf69.setEncryptionKey(key);
+  //uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+  //                  0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
+  //rf69.setEncryptionKey(key);
 
-  rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kva
+  //rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kva
 
   //Sen initieras SD-kortet
 
@@ -111,6 +111,8 @@ void setup() {
 }
 
 void loop() {
+  delay(100);
+
   while (Serial1.available()) {
     char c = Serial1.read();
     Serial.write(c);
@@ -190,20 +192,4 @@ void loop() {
 
   rf69.send((uint8_t*)radiopacket, (uint8_t)strlen(radiopacket));
   rf69.waitPacketSent();
-
-
-  uint8_t buf[60];
-  uint8_t len = sizeof(buf);
-  if (rf69.waitAvailableTimeout(10)) { //testade sänka den (Är 500 innan) för att optimera tiden
-    if (rf69.recv(buf, &len)) {
-      if (len < sizeof(buf)) buf[len] = '\0'; else buf[sizeof(buf) - 1] = '\0';
-      Serial.print("Got a reply: ");
-      Serial.println((char*)buf);
-      Blink(LED, 40, 2);
-    } else {
-      Serial.println("Receive failed");
-    }
-  } else {
-    Serial.println("No reply, is another RFM69 listening?");
-  }
 }
