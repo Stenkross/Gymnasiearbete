@@ -10,7 +10,7 @@
 #include <SFE_BMP180.h>
 #include <TinyGPSPlus.h>
 
-#define RF69_FREQ   433.0
+#define RF69_FREQ   915.0
 #define RFM69_CS    5
 #define RFM69_INT   24
 #define RFM69_RST   25
@@ -24,7 +24,6 @@ File myFile;
 
 const int chipSelect = 9;
 int16_t packetnum = 0;  
-const bool USE_BMP_TEMP = false; //Används inte?
 
 void Blink(byte pin, byte delay_ms, byte loops) {
   while (loops--) { 

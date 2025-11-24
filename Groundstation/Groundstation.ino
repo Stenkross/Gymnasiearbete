@@ -3,11 +3,11 @@
 
 #include <SPI.h>
 #include <RH_RF69.h>
-#define RF69_FREQ 433.0
+#define RF69_FREQ 915.0
 #define RFM69_CS   1 
 #define RFM69_INT  24 
 #define RFM69_RST  25 
-#define LED        11
+#define LED        27
 
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
@@ -35,10 +35,10 @@ void setup() {
   }
 
   rf69.setTxPower(20, true); 
-  rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kvar
+  //rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kvar
 
-  //uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-  //                  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+ // uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+  //                  0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
   //rf69.setEncryptionKey(key);
 
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
@@ -46,13 +46,12 @@ void setup() {
 
 void loop() {
   //Ta bort för transmitter/satellit och välj delay på receiver/groundstation
-  delay(500);
 
-  char radiopacket[20] = "Hello World";
-  Serial.print("Sending "); Serial.println(radiopacket);
+  //char radiopacket[20] = "Hello World";
+  //Serial.print("Sending "); Serial.println(radiopacket);
 
-  rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
-  rf69.waitPacketSent();
+  //rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
+  //rf69.waitPacketSent();
 
   uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
@@ -60,13 +59,11 @@ void loop() {
   if (rf69.waitAvailableTimeout(500)) {
     if (rf69.recv(buf, &len)) {
       Serial.println((char*)buf);
-      Blink(LED, 50, 3); // blink LED 3 times, 50ms between blinks
+      Blink(LED, 50, 1); // blink LED 3 times, 50ms between blinks
     } else {
       Serial.println("Receive failed");
     }
-  } else {
-    Serial.println("No reply, is another RFM69 listening?");
-  }
+  } 
 }
 
 void Blink(byte pin, byte delay_ms, byte loops) {
