@@ -35,11 +35,12 @@ void setup() {
   }
 
   rf69.setTxPower(20, true); 
-  //rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kvar
 
- // uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-  //                  0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
-  //rf69.setEncryptionKey(key);
+ uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                    0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
+  rf69.setEncryptionKey(key);
+
+  rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kvar
 
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
 }
@@ -59,6 +60,7 @@ void loop() {
   if (rf69.waitAvailableTimeout(500)) {
     if (rf69.recv(buf, &len)) {
       Serial.println((char*)buf);
+      Serial.println(rf69.lastRssi(), DEC);
       Blink(LED, 50, 1); // blink LED 3 times, 50ms between blinks
     } else {
       Serial.println("Receive failed");

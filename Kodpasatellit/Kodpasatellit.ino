@@ -9,7 +9,7 @@
 #include <SFE_BMP180.h>
 #include <TinyGPSPlus.h>
 
-#define RF69_FREQ   433.0
+#define RF69_FREQ   868.0
 #define RFM69_CS    13
 #define RFM69_INT   24
 #define RFM69_RST   25
@@ -62,11 +62,10 @@ void setup() {
   rf69.setTxPower(20, true);
   Serial.print("RFM69 @ "); Serial.print(RF69_FREQ); Serial.println(" MHz");
 
-  //uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-  //                  0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
-  //rf69.setEncryptionKey(key);
-
-  //rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kva
+  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                    0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
+  rf69.setEncryptionKey(key)
+  rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kva
 
   //Sen initieras SD-kortet
 
@@ -110,7 +109,7 @@ void setup() {
 }
 
 void loop() {
-  delay(100);
+  //delay(100);
 
   while (Serial1.available()) {
     char c = Serial1.read();
