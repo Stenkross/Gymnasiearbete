@@ -3,7 +3,7 @@
 
 #include <SPI.h>
 #include <RH_RF69.h>
-#define RF69_FREQ 915.0
+#define RF69_FREQ 868.0
 #define RFM69_CS   1 
 #define RFM69_INT  24 
 #define RFM69_RST  25 
@@ -12,20 +12,24 @@
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 void setup() {
+  delay(50);
   pinMode(LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   pinMode(RFM69_INT,OUTPUT);
   pinMode(RFM69_CS,OUTPUT);
 
   Serial.begin(115200);
-  while (!Serial) delay(1); 
+  delay(1000);
 
   digitalWrite(RFM69_RST, HIGH); delay(10);
   digitalWrite(RFM69_RST, LOW); delay(10);
 
   if (!rf69.init()) {
     Serial.println("RFM69 radio init failed");
-    while (1);
+    digitalWrite(LED,HIGH);
+    delay(500);
+    digitalWrite(LED,LOW);
+    delay(1);
   }
 
   Serial.println("RFM69 radio init OK!");
@@ -36,7 +40,7 @@ void setup() {
 
   rf69.setTxPower(20, true); 
 
- uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                     0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
   rf69.setEncryptionKey(key);
 

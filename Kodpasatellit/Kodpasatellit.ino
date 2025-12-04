@@ -36,7 +36,7 @@ void Blink(byte pin, byte delay_ms, byte loops) {
 void setup() {
   Serial.begin(115200);
   Serial1.begin(9600);
-  while (!Serial) { delay(1); }
+  delay(100);
 
   //Börjar initiera radion.
 
@@ -64,7 +64,7 @@ void setup() {
 
   uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                     0x01, 0x03, 0x02, 0x04, 0x05, 0x06, 0x07, 0x08};
-  rf69.setEncryptionKey(key)
+  rf69.setEncryptionKey(key);
   rf69.setModemConfig(RH_RF69::FSK_Rb9_6Fd19_2); // kanske ha kva
 
   //Sen initieras SD-kortet
