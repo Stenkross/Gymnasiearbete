@@ -36,7 +36,7 @@ void Blink(byte pin, byte delay_ms, byte loops) {
 void setup() {
   Serial.begin(115200);
   Serial1.begin(9600);
-  delay(100);
+  delay(1000);
 
   //Börjar initiera radion.
 

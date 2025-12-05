@@ -9,6 +9,8 @@
 #define RFM69_RST  25 
 #define LED        27
 
+float brightness;
+
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 void setup() {
@@ -65,16 +67,17 @@ void loop() {
     if (rf69.recv(buf, &len)) {
       Serial.println((char*)buf);
       Serial.println(rf69.lastRssi(), DEC);
-      Blink(LED, 50, 1); // blink LED 3 times, 50ms between blinks
+      brightness = map(rf69.lastRssi(),-110,0,0,255);
+      Blink(LED, 50, 1,brightness); // blink LED 3 times, 50ms between blinks
     } else {
       Serial.println("Receive failed");
     }
   } 
 }
 
-void Blink(byte pin, byte delay_ms, byte loops) {
+void Blink(byte pin, byte delay_ms, byte loops,float brightness) {
   while (loops--) {
-    digitalWrite(pin, HIGH);
+    analogWrite(pin, brightness);
     delay(delay_ms);
     digitalWrite(pin, LOW);
     delay(delay_ms);
