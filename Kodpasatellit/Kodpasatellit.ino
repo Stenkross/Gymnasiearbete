@@ -22,16 +22,37 @@ TinyGPSPlus gps;
 File myFile;
 
 const int chipSelect = 9;
-int16_t packetnum = 0;  
+int16_t packetnum = 0; 
 
-void Blink(byte pin, byte delay_ms, byte loops) {
-  while (loops--) { 
-    digitalWrite(pin, HIGH); 
-    delay(delay_ms); 
-    digitalWrite(pin, LOW); 
-    delay(delay_ms); 
+enum ErrorCode {
+  ERROR_RADIO = 1,
+  ERROR_SD    = 2
+};
+
+void BigError(uint8_t code) {
+  pinMode(LED, OUTPUT);
+
+  digitalWrite(LED, LOW);
+
+  while (true) {
+    for (uint8_t i = 0; i < code; i++) {
+      digitalWrite(LED, HIGH);
+      delay(200);
+      digitalWrite(LED, LOW);
+      delay(200);
+    }
+    delay(3000);
   }
 }
+
+//*void Blink(byte pin, byte delay_ms, byte loops) {
+//  while (loops--) { 
+//    digitalWrite(pin, HIGH); 
+//    delay(delay_ms); 
+//    digitalWrite(pin, LOW); 
+//    delay(delay_ms); 
+//  }
+//}
 
 void setup() {
   Serial.begin(115200);
@@ -42,6 +63,7 @@ void setup() {
 
   pinMode(chipSelect,OUTPUT);
   pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
   pinMode(RFM69_RST, OUTPUT);
   pinMode(RFM69_INT, OUTPUT);
   pinMode(RFM69_CS, OUTPUT);
@@ -54,7 +76,7 @@ void setup() {
 
   if (!rf69.init()) {
     Serial.println("RFM69 radio init failed");
-    while (1) { delay(1); }
+    BigError(ERROR_RADIO);
   }
   if (!rf69.setFrequency(RF69_FREQ)) {
     Serial.println("setFrequency failed");
@@ -80,7 +102,7 @@ void setup() {
     Serial.println("2. is your wiring correct?");
     Serial.println("3. did you change the chipSelect pin to match your shield or module?");
     Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
-    while (1);
+    BigError(ERROR_SD);
   }
 
   Serial.println("initialization done.");
@@ -137,6 +159,12 @@ void loop() {
     }
   }
 
+  double altitude = NAN;
+  const double SEA_LEVEL_PRESSURE = 101325.0;
+  if (status != 0) {
+    altitude = bmp180.altitude(P, SEA_LEVEL_PRESSURE);
+  }
+
   //Tiden sen programmet startade?
   
   unsigned long time_ms = millis()/1000;
@@ -157,7 +185,8 @@ void loop() {
                String(T, 1) + ";" +
                String(P, 1) + ";" +
                String(lat ,5) + ";" +
-               String(lng ,5) + ";" +"\n";
+               String(lng ,5) + ";" +
+               String(altitude, 1) + "\n";
 
   //Skriv det i SD-kortet som backup
 
@@ -176,7 +205,9 @@ void loop() {
           String(T, 1) + ";" +
           String(P, 0) + ";" +
           String(lat ,3) + ";" +
-          String(lng ,3) + ";" +"\n";
+          String(lng ,3) + ";" +
+          String(altitude, 0) + "\n";
+          
   }
 
   //Skicka det till markstationen via radion.
@@ -190,4 +221,6 @@ void loop() {
 
   rf69.send((uint8_t*)radiopacket, (uint8_t)strlen(radiopacket));
   rf69.waitPacketSent();
+
+  okbeat();
 }
