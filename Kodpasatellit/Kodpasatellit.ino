@@ -24,9 +24,12 @@ File myFile;
 const int chipSelect = 9;
 int16_t packetnum = 0; 
 
+
+//Vilken Error kod
 enum ErrorCode {
-  ERROR_RADIO = 1,
-  ERROR_SD    = 2
+  ERROR_RADIO = 2,
+  ERROR_SD    = 3,
+  ERROR_BMP   = 4
 };
 
 void BigError(uint8_t code) {
@@ -45,14 +48,27 @@ void BigError(uint8_t code) {
   }
 }
 
-//*void Blink(byte pin, byte delay_ms, byte loops) {
-//  while (loops--) { 
-//    digitalWrite(pin, HIGH); 
-//    delay(delay_ms); 
-//    digitalWrite(pin, LOW); 
-//    delay(delay_ms); 
-//  }
-//}
+void okbeat() {
+  static unsigned long lastBeat = 0;
+  static bool inPulse = false;
+  unsigned long now = millis();
+
+  const unsigned long PERIOD = 5000;
+  const unsigned long PULSE  = 800; 
+
+  if (!inPulse) {
+    if (now - lastBeat >= PERIOD) {
+      inPulse = true;
+      lastBeat = now;
+      digitalWrite(LED, HIGH);
+    }
+  } else {
+    if (now - lastBeat >= PULSE) {
+      inPulse = false;
+      digitalWrite(LED, LOW);
+    }
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -73,6 +89,9 @@ void setup() {
 
   digitalWrite(RFM69_RST, HIGH); delay(10);
   digitalWrite(RFM69_RST, LOW);  delay(10);
+
+  digitalWrite(LED, HIGH); delay(500);
+  digitalWrite(LED, LOW);  delay(500);
 
   if (!rf69.init()) {
     Serial.println("RFM69 radio init failed");
@@ -124,10 +143,11 @@ void setup() {
     Serial.println("BMP180 OK");
   } else {
     Serial.println("BMP180 hittades inte");
+    BigError(ERROR_BMP);
   }
 
   Serial.println("Setup klar.");
-
+// lys i början och i slutet av setup så vet man om något gick fel i. blinka 10 gånger och sedan delay
 }
 
 void loop() {
@@ -159,10 +179,9 @@ void loop() {
     }
   }
 
-  double altitude = NAN;
-  const double SEA_LEVEL_PRESSURE = 101325.0;
-  if (status != 0) {
-    altitude = bmp180.altitude(P, SEA_LEVEL_PRESSURE);
+  double gpsAlt = NAN;
+  if (gps.altitude.isValid()) {
+    gpsAlt = gps.altitude.meters();
   }
 
   //Tiden sen programmet startade?
@@ -186,7 +205,7 @@ void loop() {
                String(P, 1) + ";" +
                String(lat ,5) + ";" +
                String(lng ,5) + ";" +
-               String(altitude, 1) + "\n";
+               String(gpsAlt, 1) + "\n";
 
   //Skriv det i SD-kortet som backup
 
@@ -200,13 +219,13 @@ void loop() {
 
   const uint8_t MAXLEN = 60;
   if (msg.length() >= MAXLEN) {
-    // Format: tid;T;P;ax;ay;az;lat;lng;
+    // Format: tid;T;P;lat;lng;alt;
     msg = String(time_ms) + ";" +
           String(T, 1) + ";" +
           String(P, 0) + ";" +
           String(lat ,3) + ";" +
           String(lng ,3) + ";" +
-          String(altitude, 0) + "\n";
+          String(gpsAlt, 0) + "\n";
           
   }
 
