@@ -1,21 +1,22 @@
 #include <Servo.h>
 
-Servo myservo; 
+Servo myservo;  // create servo object to control a servo
+// twelve servo objects can be created on most boards
+
+int pos = 0;    // variable to store the servo position
 
 void setup() {
-  //Sätter på servon. Kommer göra att servoarmen börjar snurra även om man inte har en myservo.write()
-  myservo.attach(11); 
-
-  //Graderna 0-26: Roterar som klockan där 0 är snabbast och 26 är långsammast
-  //Graderna 27-37: Servon är stilla
-  //Graderna 38-180: Roterar motsatt klockan där 180 är snabbast och 38 är långsammast
-  myservo.write(180); 
-  delay(5000);
-
-  //Stänger av servon
-  myservo.detach();
+  myservo.attach(13);  // attaches the servo on pin 9 to the servo object
 }
 
-void loop() { 
-  
+void loop() {
+  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    myservo.write(pos);              // tell servo to go to position in variable 'pos'
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
+  for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+    myservo.write(pos);              // tell servo to go to position in variable 'pos'
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
 }
