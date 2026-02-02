@@ -1,5 +1,5 @@
 //Kod för satelliten. Skicka alla mätvärden till Groundstation.
-//Cs-pin för antennen: 1 och SDkort: 9
+//Cs-pin för antennen: 13 och SDkort: 9
 
 #include <SPI.h>
 #include <RH_RF69.h>
@@ -8,6 +8,7 @@
 #include <Adafruit_Sensor.h>
 #include <SFE_BMP180.h>
 #include <TinyGPSPlus.h>
+#include <Servo.h>
 
 #define RF69_FREQ   868.0
 #define RFM69_CS    13
@@ -20,10 +21,17 @@ RH_RF69 rf69(RFM69_CS, RFM69_INT);
 SFE_BMP180 bmp180;
 TinyGPSPlus gps;
 File myFile;
+Servo myServo;
+
+const int SERVO_PIN = 5;
+const int SERVO_NEUTRAL = 90;
 
 const int chipSelect = 9;
 int16_t packetnum = 0; 
 
+bool Start = false;
+double MaxAlt = -1e5;
+const double start_alt = 15.0;
 
 //Vilken Error kod
 enum ErrorCode {
@@ -32,7 +40,7 @@ enum ErrorCode {
   ERROR_BMP   = 4
 };
 
-void BigError(uint8_t code) {
+void BigError(code) {
   pinMode(LED, OUTPUT);
 
   digitalWrite(LED, LOW);
@@ -70,16 +78,41 @@ void okbeat() {
   }
 }
 
+void blinkStart(times) {
+  for (uint8_t i = 0; i < times; i++) {
+    digitalWrite(LED, HIGH);
+    delay(100);
+    digitalWrite(LED, LOW);
+    delay(100);
+  }
+}
+
+void start_all(altitude) {
+  if (altitude > MaxAlt) {
+    MaxAlt = altitude;
+  }
+  if (!start && altitude < (MaxAlt - start_alt)) {
+    start = true;
+  }
+}
+
+
+
+
 void setup() {
   Serial.begin(115200);
   Serial1.begin(9600);
-  delay(1000);
+
+  
+  delay(100);
 
   //Börjar initiera radion.
 
   pinMode(chipSelect,OUTPUT);
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);
+  blinkStart(5);
+  delay(100);
   pinMode(RFM69_RST, OUTPUT);
   pinMode(RFM69_INT, OUTPUT);
   pinMode(RFM69_CS, OUTPUT);
@@ -146,22 +179,19 @@ void setup() {
     BigError(ERROR_BMP);
   }
 
+  myServo.attach(SERVO_PIN);
+  myServo.write(SERVO_NEUTRAL);
+
   Serial.println("Setup klar.");
+  blinkStart(5);
+  delay(1000);
 // lys i början och i slutet av setup så vet man om något gick fel i. blinka 10 gånger och sedan delay
 }
 
 void loop() {
-  //delay(100);
-
-  while (Serial1.available()) {
-    char c = Serial1.read();
-    Serial.write(c);
-    gps.encode(c);
-  }
-
-  //Tryck och temperatur
-
-  double T,P;
+  
+ double T = NAN;
+  double P = NAN;
   char status;
   bool success = false;
 
@@ -178,6 +208,28 @@ void loop() {
       }
     }
   }
+
+  double alt = (44330.0 * (1.0 - pow(p / 1013.25, 1.0 / 5.255)));
+  start(alt);
+
+  if (start){
+//servokod
+  }
+  else {
+//ingenting 
+  }
+  
+  //delay(100);
+
+  while (Serial1.available()) {
+    char c = Serial1.read();
+    Serial.write(c);
+    gps.encode(c);
+  }
+
+  //Tryck och temperatur
+
+ 
 
   double gpsAlt = NAN;
   if (gps.altitude.isValid()) {
