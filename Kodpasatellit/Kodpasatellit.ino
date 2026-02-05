@@ -23,11 +23,13 @@ TinyGPSPlus gps;
 File myFile;
 Servo myServo;
 
-const int SERVO_PIN = 5;
+const int SERVO_PIN = 29;
 const int SERVO_NEUTRAL = 90;
 
 const int chipSelect = 9;
 int16_t packetnum = 0; 
+
+float oldP;
 
 bool start = false;
 double MaxAlt = -1e5;
@@ -128,12 +130,12 @@ void setup() {
 
   if (!rf69.init()) {
     Serial.println("RFM69 radio init failed");
-    BigError(ERROR_RADIO);
+    //BigError(ERROR_RADIO);
   }
   if (!rf69.setFrequency(RF69_FREQ)) {
     Serial.println("setFrequency failed");
   }
-  rf69.setTxPower(20, true);
+  rf69.setTxPower(14, true);
   Serial.print("RFM69 @ "); Serial.print(RF69_FREQ); Serial.println(" MHz");
 
   uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
@@ -154,7 +156,7 @@ void setup() {
     Serial.println("2. is your wiring correct?");
     Serial.println("3. did you change the chipSelect pin to match your shield or module?");
     Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
-    BigError(ERROR_SD);
+    //BigError(ERROR_SD);
   }
 
   Serial.println("initialization done.");
@@ -176,7 +178,7 @@ void setup() {
     Serial.println("BMP180 OK");
   } else {
     Serial.println("BMP180 hittades inte");
-    BigError(ERROR_BMP);
+    //BigError(ERROR_BMP);
   }
 
   myServo.attach(SERVO_PIN);
@@ -188,8 +190,9 @@ void setup() {
 }
 
 void loop() {
+  delay(200);
 
- double T = NAN;
+  double T = NAN;
   double P = NAN;
   char status;
   bool success = false;
@@ -208,16 +211,9 @@ void loop() {
     }
   }
 
-  double alt = (44330.0 * (1.0 - pow(P / 1013.25, 1.0 / 5.255)));
-  start_all(alt);
+  //double alt = (44330.0 * (1.0 - pow(P / 1013.25, 1.0 / 5.255)));
+  //start_all(alt);
 
-  if (start){
-//servokod
-  }
-  else {
-//ingenting 
-  }
-  
   //delay(100);
 
   while (Serial1.available()) {
@@ -292,5 +288,7 @@ void loop() {
   rf69.send((uint8_t*)radiopacket, (uint8_t)strlen(radiopacket));
   rf69.waitPacketSent();
 
-  okbeat();
+  myServo.write(70);
+
+  //okbeat();
 }
