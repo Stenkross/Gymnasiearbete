@@ -29,7 +29,7 @@ const int SERVO_NEUTRAL = 90;
 const int chipSelect = 9;
 int16_t packetnum = 0; 
 
-bool Start = false;
+bool start = false;
 double MaxAlt = -1e5;
 const double start_alt = 15.0;
 
@@ -40,7 +40,7 @@ enum ErrorCode {
   ERROR_BMP   = 4
 };
 
-void BigError(code) {
+void BigError(uint8_t code) {
   pinMode(LED, OUTPUT);
 
   digitalWrite(LED, LOW);
@@ -78,7 +78,7 @@ void okbeat() {
   }
 }
 
-void blinkStart(times) {
+void blinkStart(uint8_t times) {
   for (uint8_t i = 0; i < times; i++) {
     digitalWrite(LED, HIGH);
     delay(100);
@@ -87,7 +87,7 @@ void blinkStart(times) {
   }
 }
 
-void start_all(altitude) {
+void start_all(double altitude) {
   if (altitude > MaxAlt) {
     MaxAlt = altitude;
   }
@@ -185,11 +185,10 @@ void setup() {
   Serial.println("Setup klar.");
   blinkStart(5);
   delay(1000);
-// lys i början och i slutet av setup så vet man om något gick fel i. blinka 10 gånger och sedan delay
 }
 
 void loop() {
-  
+
  double T = NAN;
   double P = NAN;
   char status;
@@ -209,8 +208,8 @@ void loop() {
     }
   }
 
-  double alt = (44330.0 * (1.0 - pow(p / 1013.25, 1.0 / 5.255)));
-  start(alt);
+  double alt = (44330.0 * (1.0 - pow(P / 1013.25, 1.0 / 5.255)));
+  start_all(alt);
 
   if (start){
 //servokod
