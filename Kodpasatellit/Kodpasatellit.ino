@@ -23,13 +23,17 @@ TinyGPSPlus gps;
 File myFile;
 Servo myServo;
 
+float goalGPSx = 50.5;
+float goalGPSy = 50.5;
+
 const int servopin = 29;
-const int servoneutral  = 90;
+const int servoneutral = 90;
 
 const int chipSelect = 9;
 int16_t packetnum = 0; 
 
-float oldP;
+float oldlng;
+float oldlat;
 
 bool start = false;
 double MaxAlt = -1e5;
@@ -105,15 +109,18 @@ void setup() {
   Serial.begin(115200);
   Serial1.begin(9600);
 
-  
+  myServo.attach(SERVO_PIN);
+  delay(300);
+  myServo.write(SERVO_NEUTRAL);
+
   delay(100);
 
   //Börjar initiera radion.
 
   pinMode(chipSelect,OUTPUT);
   pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
   blinkStart(5);
+  digitalWrite(LED, LOW);
   delay(100);
   pinMode(RFM69_RST, OUTPUT);
   pinMode(RFM69_INT, OUTPUT);
@@ -181,10 +188,6 @@ void setup() {
     BigError(ERROR_BMP);
   }
 
-  myServo.attach(SERVO_PIN);
-  delay(300);
-  myServo.write(SERVO_NEUTRAL);
-
   Serial.println("Setup klar.");
   blinkStart(5);
   delay(1000);
@@ -212,21 +215,15 @@ void loop() {
     }
   }
 
-  //if ((oldP - P) <= 0.1 && (oldP-P) >= -0.1)
-  //{
-  //  myServo.write(90);
-  //}
-  //else{
-  //  myServo.write(50);
-  //}
-
-
   oldP = P;
 
-  //double alt = (44330.0 * (1.0 - pow(P / 1013.25, 1.0 / 5.255)));
-  //start_all(alt);
+  double alt = (44330.0 * (1.0 - pow(P / 1013.25, 1.0 / 5.255)));
+  start_all(alt);
 
-  //delay(100);
+  
+  else {
+    //ingenting 
+  }
 
   while (Serial1.available()) {
     char c = Serial1.read();
@@ -256,6 +253,65 @@ void loop() {
     lat = gps.location.lat();
     lng = gps.location.lng();
   }
+
+  if (start){
+    x = lng - goalGPSx;
+    y = lat - goalGPSy;
+
+    speedx = lng - oldlng;
+    speedy = lat - oldlat;
+
+    if(x<0)
+    {
+      anglefromposition = atan(y/x) * (180/pi);
+    }
+    else
+    {
+      anglefromposition = atan(y/x) * (180/pi) + 180;
+    }
+
+    if(speedx<0){
+      anglefromspeed = atan(speedy/speedx) * (180/pi) + 180;
+    }
+    else
+    {
+      anglefromspeed = atan(speedy/speedx) * (180/pi);
+    }
+
+    angleturn = anglefromspeed - anglefromposition;
+
+    if (angleturn < -180) {
+      angleturn += 360;
+    }
+    else if (angleturn > 180) 
+    {
+      angleturn -= 360;
+    }
+
+    Serial.println(String(x) + " " + String(y) + " " + String(speedx) + " " + String(speedy));
+    Serial.println(String(angleturn) + " " + String(anglefromposition) + " " + String(anglefromspeed));
+
+    //höger sväng är om det är positiv grad
+    //vänster sväng om det är negativ grad
+
+    if (angleturn) > 45 
+    {
+      myservo.write(80);
+    }
+    else if (angleturn) < -45
+    {
+      myservo.write(100);
+    }
+    else
+    {
+      myservo.write(90);
+    }
+
+    //när servon är på 0 drar den ner den högra linjen
+  }
+
+  oldlng = lat;
+  oldlat = lng;
 
   //Lägg ihop allt till meddelandet som ska skickas
 
