@@ -23,8 +23,8 @@ TinyGPSPlus gps;
 File myFile;
 Servo myServo;
 
-const int SERVO_PIN = 29;
-const int SERVO_NEUTRAL = 90;
+const int servopin = 29;
+const int servoneutral  = 90;
 
 const int chipSelect = 9;
 int16_t packetnum = 0; 
