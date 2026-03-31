@@ -35,6 +35,18 @@ int16_t packetnum = 0;
 float oldlng;
 float oldlat;
 
+float x;
+float y;
+
+float speedx;
+float speedy;
+
+float angleturn;
+float anglefromposition;
+float anglefromspeed;
+
+float pi = 3.141592653;
+
 bool start = false;
 double MaxAlt = -1e5;
 const double start_alt = 15.0;
@@ -109,9 +121,9 @@ void setup() {
   Serial.begin(115200);
   Serial1.begin(9600);
 
-  myServo.attach(SERVO_PIN);
+  myServo.attach(servopin);
   delay(300);
-  myServo.write(SERVO_NEUTRAL);
+  myServo.write(servoneutral);
 
   delay(100);
 
@@ -215,15 +227,8 @@ void loop() {
     }
   }
 
-  oldP = P;
-
   double alt = (44330.0 * (1.0 - pow(P / 1013.25, 1.0 / 5.255)));
   start_all(alt);
-
-  
-  else {
-    //ingenting 
-  }
 
   while (Serial1.available()) {
     char c = Serial1.read();
@@ -294,17 +299,17 @@ void loop() {
     //höger sväng är om det är positiv grad
     //vänster sväng om det är negativ grad
 
-    if (angleturn) > 45 
+    if (angleturn > 45) 
     {
-      myservo.write(80);
+      myServo.write(80);
     }
-    else if (angleturn) < -45
+    else if (angleturn < -45)
     {
-      myservo.write(100);
+      myServo.write(100);
     }
     else
     {
-      myservo.write(90);
+      myServo.write(90);
     }
 
     //när servon är på 0 drar den ner den högra linjen
