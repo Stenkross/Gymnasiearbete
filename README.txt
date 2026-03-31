@@ -1,0 +1,1 @@
+Här är koden för projektet. Groundstation är all kod för markstationen med radiomodulen och lampan och kodpasatellit är all kod för CanSaten.
